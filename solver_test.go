@@ -22,6 +22,7 @@ func TestSolver_Solve1(t *testing.T) {
 	ins.AddItem(3, 5, 1.1)
 
 	solver := new(Solver).New(ins)
+
 	println(solver.Solve())
 	solver.PrintResTree()
 	solver.PrintItems()
