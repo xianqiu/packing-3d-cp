@@ -1,11 +1,15 @@
 package packing_3d_cp
 
+import "fmt"
+
 type SearchTree struct {
+	ins        *Instance
 	nodes      map[int]bool
 	rl, rw, rh *RelationTree
 }
 
-func (s *SearchTree) Init() *SearchTree {
+func (s *SearchTree) Init(ins *Instance) *SearchTree {
+	s.ins = ins
 	s.rl = new(RelationTree).Init()
 	s.rw = new(RelationTree).Init()
 	s.rh = new(RelationTree).Init()
@@ -15,6 +19,7 @@ func (s *SearchTree) Init() *SearchTree {
 
 func (s *SearchTree) Copy() *SearchTree {
 	t := new(SearchTree)
+	t.ins = s.ins
 	t.rl = s.rl.Copy()
 	t.rw = s.rw.Copy()
 	t.rh = s.rh.Copy()
@@ -36,17 +41,17 @@ const (
 	ABOVE Relation = 6
 )
 
-func (s *SearchTree) addNode(ins *Instance, index int) {
+func (s *SearchTree) addNode(index int) {
 	s.nodes[index] = true
-	s.rl.AddNode(index, ins.GetItem(index).L)
-	s.rw.AddNode(index, ins.GetItem(index).W)
-	s.rh.AddNode(index, ins.GetItem(index).H)
+	s.rl.AddNode(index, s.ins.GetItem(index).L)
+	s.rw.AddNode(index, s.ins.GetItem(index).W)
+	s.rh.AddNode(index, s.ins.GetItem(index).H)
 }
 
-func (s *SearchTree) AddArc(ins *Instance, i, j int, r Relation) {
-	s.addNode(ins, i)
-	s.addNode(ins, j)
-	switch r {
+func (s *SearchTree) AddArc(i, j int, a Relation) {
+	s.addNode(i)
+	s.addNode(j)
+	switch a {
 	case LEFT: // i is to the left of j
 		s.rl.AddArc(i, j) // Note: "break" is automatic
 	case RIGHT: // i is to the right of j
@@ -62,7 +67,7 @@ func (s *SearchTree) AddArc(ins *Instance, i, j int, r Relation) {
 	}
 }
 
-func (s *SearchTree) getBoundaryIds(ins *Instance) map[int]bool {
+func (s *SearchTree) getBoundaryIds() map[int]bool {
 	ids := make(map[int]bool)
 	for k := range s.rl.boundaryIds {
 		ids[k] = true
@@ -83,29 +88,41 @@ func (s *SearchTree) GetXyzOfA(id int) (float64, float64, float64) {
 	return x, y, z
 }
 
-func (s *SearchTree) GetXyzOfB(ins *Instance, id int) (float64, float64, float64) {
-	x := s.rl.GetNode(id).location + ins.GetItem(id).L
-	y := s.rw.GetNode(id).location + ins.GetItem(id).W
-	z := s.rh.GetNode(id).location + ins.GetItem(id).H
+func (s *SearchTree) GetXyzOfB(id int) (float64, float64, float64) {
+	x := s.rl.GetNode(id).location + s.ins.GetItem(id).L
+	y := s.rw.GetNode(id).location + s.ins.GetItem(id).W
+	z := s.rh.GetNode(id).location + s.ins.GetItem(id).H
 	return x, y, z
 }
 
-func (s *SearchTree) IsFeasible(ins *Instance) bool {
-	boundaryIds := s.getBoundaryIds(ins)
+func (s *SearchTree) IsFeasible() bool {
+	boundaryIds := s.getBoundaryIds()
 	for id := range boundaryIds {
-		l, w, h := s.GetXyzOfB(ins, id)
-		if l > ins.box.L || w > ins.box.W || h > ins.box.H {
+		l, w, h := s.GetXyzOfB(id)
+		if l > s.ins.box.L || w > s.ins.box.W || h > s.ins.box.H {
 			return false
 		}
 	}
 	return true
 }
 
-func (s *SearchTree) Print() {
-	println("-- relation tree: L --")
-	s.rl.Print()
-	println("-- relation tree: W --")
-	s.rw.Print()
-	println("-- relation tree: H --")
-	s.rh.Print()
+func (s *SearchTree) PrintTree() {
+	s.rl.PrintTree("L")
+	s.rw.PrintTree("W")
+	s.rh.PrintTree("H")
+}
+
+func (s *SearchTree) PrintItem(id int) {
+	xa, ya, za := s.GetXyzOfA(id)
+	xb, yb, zb := s.GetXyzOfB(id)
+	l, w, h := s.ins.GetItem(id).L, s.ins.GetItem(id).W, s.ins.GetItem(id).H
+	fmt.Printf("+ item %d\n", id)
+	fmt.Printf("  - location: A=(%.2f, %.2f, %.2f) B=(%.2f, %.2f, %.2f)\n", xa, ya, za, xb, yb, zb)
+	fmt.Printf("  - size: (%.2f, %.2f, %.2f)\n", l, w, h)
+}
+
+func (s *SearchTree) PrintItems() {
+	for id := range s.nodes {
+		s.PrintItem(id)
+	}
 }

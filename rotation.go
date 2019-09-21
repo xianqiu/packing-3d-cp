@@ -12,8 +12,9 @@ const (
 )
 
 type Rotation struct {
-	di   Direction
-	item *Item
+	di      Direction
+	item    *Item
+	rotated map[Direction]Item
 }
 
 func (r *Rotation) Init(item *Item) *Rotation {
@@ -25,28 +26,22 @@ func (r *Rotation) Init(item *Item) *Rotation {
 func (r *Rotation) Next() {
 	switch r.di {
 	case LWH:
-		r.item.H, r.item.W = r.item.W, r.item.H // L, H, W
+		r.item.W, r.item.H = r.item.H, r.item.W
 		r.di = LHW
-		break
 	case LHW:
-		r.item.L, r.item.H = r.item.H, r.item.L // W, H, L
+		r.item.L, r.item.H = r.item.H, r.item.L
 		r.di = WHL
-		break
 	case WHL:
-		r.item.W, r.item.H = r.item.H, r.item.W // W, L, H
+		r.item.W, r.item.H = r.item.H, r.item.W
 		r.di = WLH
-		break
 	case WLH:
-		r.item.L, r.item.H = r.item.H, r.item.L // H, L, W
+		r.item.L, r.item.H = r.item.H, r.item.L
 		r.di = HLW
-		break
 	case HLW:
-		r.item.W, r.item.H = r.item.H, r.item.W // H, W, L
+		r.item.W, r.item.H = r.item.H, r.item.W
 		r.di = HWL
-		break
 	case HWL:
 		r.di = 0 // mark as end
-		break
 	}
 }
 

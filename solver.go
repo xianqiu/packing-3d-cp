@@ -1,46 +1,45 @@
 package packing_3d_cp
 
-func compare(tree *SearchTree, ins *Instance, i, j int, result *bool) {
+func compare(tree *SearchTree, i, j int, result *bool) {
+	ins := tree.ins
 	item := ins.GetItem(j)
 	for r := new(Rotation).Init(item); r.NotEnd(); r.Next() {
 		for a := Relation(1); a <= 6; a++ {
-			println(">> old tree ...")
-			tree.Print()
+			//println(">> old tree ...")
+			//tree.PrintTree()
 			newTree := tree.Copy()
-			newTree.AddArc(ins, i, j, a)
-			if newTree.IsFeasible(ins) {
+			newTree.AddArc(i, j, a)
+			if newTree.IsFeasible() {
 				// DEBUG INFO
-				println("i, j, r, di:", i, j, a, r.di)
-				newTree.Print()
-				for i := 0; i < len(newTree.nodes); i++ {
-					xa, ya, za := newTree.GetXyzOfA(i)
-					xb, yb, zb := newTree.GetXyzOfB(ins, i)
-					println("item", i, "A =", xa, ya, za, "B =", xb, yb, zb, "Dim =",
-						ins.GetItem(i).L, ins.GetItem(i).W, ins.GetItem(i).H)
-				}
+				//println("feasible: (i, j, r, a) =", i, j, r.di, a)
+				//newTree.PrintTree()
+				//newTree.PrintItems()
 				// ---
 				if j == i+1 && j == (len(ins.items)-1) {
 					*result = true
+					//newTree.PrintItems()
 					return
 				}
+				var p, q int
 				if j == i+1 {
-					i = 0
-					j += 1
+					p = 0
+					q = j + 1
 				} else {
-					i += 1
+					p = i + 1
+					q = j
 				}
-				compare(newTree, ins, i, j, result)
+				compare(newTree, p, q, result)
 				if *result {
 					return
 				}
 			}
+			//println("infeasible: (i, j, r, a) =", i, j, r.di, a)
 		}
 	}
 }
 
 type Solver struct {
 	ins *Instance
-	s   *SearchTree
 }
 
 func (c *Solver) New(ins *Instance) *Solver {
@@ -52,20 +51,13 @@ func (c *Solver) Solve() bool {
 	// TODO: Uncomment.
 	//sort.Sort(c.ins.items)
 	res := false
-	t := new(SearchTree).Init()
+	t := new(SearchTree).Init(c.ins)
 	item0 := c.ins.GetItem(0)
 	for r := new(Rotation).Init(item0); r.NotEnd(); r.Next() {
-		compare(t, c.ins, 0, 1, &res)
+		compare(t, 0, 1, &res)
 		if res {
 			return true
 		}
 	}
 	return false
-}
-
-func (c *Solver) GetLocation(id int) (float64, float64, float64) {
-	x := c.s.rl.GetNode(id).location
-	y := c.s.rw.GetNode(id).location
-	z := c.s.rh.GetNode(id).location
-	return x, y, z
 }

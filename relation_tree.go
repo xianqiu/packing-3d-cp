@@ -1,7 +1,7 @@
 package packing_3d_cp
 
 import (
-	"container/list"
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -39,14 +39,14 @@ func (n *RelationNode) Copy() *RelationNode {
 
 type RelationTree struct {
 	nodes       map[int]*RelationNode
-	arcs        map[int]*list.List
+	arcs        map[int][]int
 	boundary    float64
 	boundaryIds map[int]bool
 }
 
 func (r *RelationTree) Init() *RelationTree {
 	r.nodes = make(map[int]*RelationNode)
-	r.arcs = make(map[int]*list.List)
+	r.arcs = make(map[int][]int)
 	r.boundary = 0
 	r.boundaryIds = make(map[int]bool)
 	return r
@@ -55,24 +55,20 @@ func (r *RelationTree) Init() *RelationTree {
 func (r *RelationTree) Copy() *RelationTree {
 	s := new(RelationTree)
 	s.nodes = make(map[int]*RelationNode)
-	s.arcs = make(map[int]*list.List)
+	s.arcs = make(map[int][]int)
 	s.boundary = r.boundary
 	s.boundaryIds = make(map[int]bool)
 
 	for k := range r.nodes {
 		s.nodes[k] = r.nodes[k].Copy()
 	}
-	println(">> copy a tree: start")
 	for k := range r.arcs {
-		s.arcs[k] = list.New()
-		children := r.arcs[k]
-		println("k has", children.Len(), "children")
-		for e := children.Front(); e != nil; e = e.Next() {
-			s.arcs[k].PushBack(e.Value.(int))
-			println("copy:", k, "->", e.Value.(int))
+		s.arcs[k] = make([]int, 0, len(r.arcs))
+		childIds := r.arcs[k]
+		for _, id := range childIds {
+			s.arcs[k] = append(s.arcs[k], id)
 		}
 	}
-	println(">> copy done.")
 	for k := range r.boundaryIds {
 		s.boundaryIds[k] = true
 	}
@@ -80,16 +76,25 @@ func (r *RelationTree) Copy() *RelationTree {
 }
 
 // Do the following things:
-// 1. Add a new node
-// 2. Init arc set
+// 1. If node exists, update node weight and the locations of the subtree rooted at the node
+// 2. If node does not exist, add a new node and init arc set
 // 3. Update boundary ids
 func (r *RelationTree) AddNode(id int, weight float64) {
 	if _, ok := r.nodes[id]; ok {
-		return
+		r.updateNode(id, weight)
+	} else {
+		r.nodes[id] = new(RelationNode).New(id, weight)
+		r.arcs[id] = make([]int, 0)
 	}
-	r.nodes[id] = new(RelationNode).New(id, weight)
-	r.arcs[id] = list.New()
 	r.updateBoundaryIds(id)
+}
+
+func (r *RelationTree) updateNode(id int, weight float64) {
+	r.GetNode(id).weight = weight
+	childIds := r.arcs[id]
+	for _, childId := range childIds {
+		r.updateLocations(id, childId)
+	}
 }
 
 func (r *RelationTree) GetNode(id int) *RelationNode {
@@ -101,13 +106,13 @@ func (r *RelationTree) GetNode(id int) *RelationNode {
 // 2. AddArc the locations of the subtree rooted at the child
 // 3. AddArc the boundary ids of the relation tree
 func (r *RelationTree) AddArc(i, j int) {
-	r.arcs[i].PushBack(j)
+	r.arcs[i] = append(r.arcs[i], j)
 	r.updateLocations(i, j)
 	r.updateBoundaryIds(j)
 }
 
 func (r *RelationTree) isLeaf(id int) bool {
-	return r.arcs[id].Len() == 0
+	return len(r.arcs[id]) == 0
 }
 
 // AddArc the boundary ids of the subtree rooted at the node
@@ -125,8 +130,8 @@ func (r *RelationTree) updateBoundaryIds(id int) {
 	}
 	// else recursively AddArc childIds of the child
 	childIds := r.arcs[node.id]
-	for e := childIds.Front(); e != nil; e = e.Next() {
-		r.updateBoundaryIds(e.Value.(int))
+	for _, id := range childIds {
+		r.updateBoundaryIds(id)
 	}
 }
 
@@ -138,25 +143,26 @@ func (r *RelationTree) updateLocations(i, j int) {
 	if newLoc > child.location {
 		child.location = newLoc
 	}
-	// if child has no children, then return
+	// if child has no childIds, then return
 	if r.isLeaf(child.id) {
 		return
 	}
-	// else recursively AddArc children of the child
-	children := r.arcs[child.id]
-	for e := children.Front(); e != nil; e = e.Next() {
-		r.updateLocations(child.id, e.Value.(int))
+	// else recursively add arc to childIds of the child
+	childIds := r.arcs[child.id]
+	for _, id := range childIds {
+		r.updateLocations(child.id, id)
 	}
 }
 
-func (r *RelationTree) Print() {
+func (r *RelationTree) PrintTree(name string) {
+	fmt.Printf("+ relation tree: %s\n", name)
 	for k := range r.arcs {
-		children := r.arcs[k]
-		c := make([]string, 0, children.Len())
-		for e := children.Front(); e != nil; e = e.Next() {
-			c = append(c, r.formatNodeStr(e.Value.(int)))
+		childIds := r.arcs[k]
+		c := make([]string, 0, len(childIds))
+		for _, id := range childIds {
+			c = append(c, r.formatNodeStr(id))
 		}
-		println(r.formatNodeStr(k), "->", strings.Join(c, ", "))
+		fmt.Printf("  - %s -> %s\n", r.formatNodeStr(k), strings.Join(c, ", "))
 	}
 }
 

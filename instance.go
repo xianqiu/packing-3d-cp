@@ -6,7 +6,7 @@ type Box struct {
 
 type Item Box
 
-type ItemList []Item
+type ItemList []*Item
 
 // -----------------------------------//
 // Implement interfaces for sort.Sort //
@@ -58,11 +58,11 @@ func (s *Instance) AddItem(length, width, height float64) {
 		W: width,
 		H: height,
 	}
-	s.items = append(s.items, item)
+	s.items = append(s.items, &item)
 }
 
 func (s *Instance) GetItem(index int) *Item {
-	return &s.items[index]
+	return s.items[index]
 }
 
 func (s *Instance) GetBox() *Box {

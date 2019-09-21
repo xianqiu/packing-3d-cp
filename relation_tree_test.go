@@ -121,7 +121,7 @@ func TestRelationTree_BoundaryNodes2(t *testing.T) {
 	r.AddArc(2, 3)
 	r.AddNode(4, 3)
 	r.AddArc(2, 4)
-	r.Print()
+	r.PrintTree("")
 	if len(r.boundaryIds) != 2 {
 		t.Error("|boundary ids| =", len(r.boundaryIds))
 	}

@@ -8,7 +8,7 @@ func TestSolver_Solve(t *testing.T) {
 	ins.AddItem(1, 4, 4)
 	ins.AddItem(3, 2, 4)
 	ins.AddItem(3, 2, 3)
-	ins.AddItem(3, 2, 1.1)
+	ins.AddItem(3, 2, 1)
 
 	solver := new(Solver).New(ins)
 	println(solver.Solve())
