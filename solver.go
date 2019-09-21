@@ -1,24 +1,16 @@
 package packing_3d_cp
 
-func compare(tree *SearchTree, i, j int, result *bool) {
+func compare(tree *SearchTree, i, j int, resTree **SearchTree) bool {
 	ins := tree.ins
 	item := ins.GetItem(j)
 	for r := new(Rotation).Init(item); r.NotEnd(); r.Next() {
 		for a := Relation(1); a <= 6; a++ {
-			//println(">> old tree ...")
-			//tree.PrintTree()
 			newTree := tree.Copy()
 			newTree.AddArc(i, j, a)
 			if newTree.IsFeasible() {
-				// DEBUG INFO
-				//println("feasible: (i, j, r, a) =", i, j, r.di, a)
-				//newTree.PrintTree()
-				//newTree.PrintItems()
-				// ---
 				if j == i+1 && j == (len(ins.items)-1) {
-					*result = true
-					//newTree.PrintItems()
-					return
+					*resTree = newTree
+					return true
 				}
 				var p, q int
 				if j == i+1 {
@@ -28,36 +20,49 @@ func compare(tree *SearchTree, i, j int, result *bool) {
 					p = i + 1
 					q = j
 				}
-				compare(newTree, p, q, result)
-				if *result {
-					return
+				if res := compare(newTree, p, q, resTree); res {
+					return true
 				}
 			}
-			//println("infeasible: (i, j, r, a) =", i, j, r.di, a)
 		}
 	}
+	return false
 }
 
 type Solver struct {
-	ins *Instance
+	ins     *Instance
+	resTree *SearchTree
 }
 
 func (c *Solver) New(ins *Instance) *Solver {
 	c.ins = ins
+	c.resTree = new(SearchTree)
 	return c
 }
 
 func (c *Solver) Solve() bool {
 	// TODO: Uncomment.
 	//sort.Sort(c.ins.items)
-	res := false
 	t := new(SearchTree).Init(c.ins)
 	item0 := c.ins.GetItem(0)
 	for r := new(Rotation).Init(item0); r.NotEnd(); r.Next() {
-		compare(t, 0, 1, &res)
-		if res {
+		if res := compare(t, 0, 1, &c.resTree); res {
 			return true
 		}
 	}
 	return false
+}
+
+func (c *Solver) PrintResTree() {
+	if c.resTree == nil {
+		return
+	}
+	c.resTree.PrintTree()
+}
+
+func (c *Solver) PrintItems() {
+	if c.resTree == nil {
+		return
+	}
+	c.resTree.PrintItems()
 }

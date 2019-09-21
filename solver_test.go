@@ -13,3 +13,16 @@ func TestSolver_Solve(t *testing.T) {
 	solver := new(Solver).New(ins)
 	println(solver.Solve())
 }
+
+func TestSolver_Solve1(t *testing.T) {
+	ins := new(Instance).Init()
+	ins.SetBox(5, 5, 5)
+	ins.AddItem(2, 5, 5)
+	ins.AddItem(3, 4, 5)
+	ins.AddItem(3, 5, 1.1)
+
+	solver := new(Solver).New(ins)
+	println(solver.Solve())
+	solver.PrintResTree()
+	solver.PrintItems()
+}

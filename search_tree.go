@@ -113,6 +113,9 @@ func (s *SearchTree) PrintTree() {
 }
 
 func (s *SearchTree) PrintItem(id int) {
+	if s == nil {
+		return
+	}
 	xa, ya, za := s.GetXyzOfA(id)
 	xb, yb, zb := s.GetXyzOfB(id)
 	l, w, h := s.ins.GetItem(id).L, s.ins.GetItem(id).W, s.ins.GetItem(id).H

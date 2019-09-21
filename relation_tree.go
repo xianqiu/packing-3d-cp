@@ -89,7 +89,13 @@ func (r *RelationTree) AddNode(id int, weight float64) {
 	r.updateBoundaryIds(id)
 }
 
+// Do the following things:
+// 1. Update node weight
+// 2. Update locations of the subtree rooted at the node
 func (r *RelationTree) updateNode(id int, weight float64) {
+	if r.GetNode(id).weight == weight {
+		return
+	}
 	r.GetNode(id).weight = weight
 	childIds := r.arcs[id]
 	for _, childId := range childIds {
@@ -156,6 +162,9 @@ func (r *RelationTree) updateLocations(i, j int) {
 
 func (r *RelationTree) PrintTree(name string) {
 	fmt.Printf("+ relation tree: %s\n", name)
+	if r == nil {
+		return
+	}
 	for k := range r.arcs {
 		childIds := r.arcs[k]
 		c := make([]string, 0, len(childIds))
