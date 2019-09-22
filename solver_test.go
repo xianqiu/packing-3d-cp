@@ -19,11 +19,11 @@ func TestSolver_Solve1(t *testing.T) {
 	ins.SetBox(5, 5, 5)
 	ins.AddItem(2, 5, 5)
 	ins.AddItem(3, 4, 5)
-	ins.AddItem(3, 5, 1.1)
-
+	ins.AddItem(3, 1, 1)
+	ins.AddItem(3, 2, 1)
+	ins.AddItem(3, 2, 1)
 	solver := new(Solver).New(ins)
-
 	println(solver.Solve())
-	solver.PrintResTree()
-	solver.PrintItems()
+	//solver.PrintResTree()
+	//solver.PrintItems()
 }

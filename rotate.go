@@ -11,14 +11,14 @@ const (
 	HWL Direction = 6
 )
 
-type Rotation struct {
+type Rotate struct {
 	di      Direction
 	item    *Item
 	mode    int
 	rotated map[Direction]Item
 }
 
-func (r *Rotation) Init(item *Item) *Rotation {
+func (r *Rotate) Init(item *Item) *Rotate {
 	r.di = LWH
 	r.item = item
 	// 4 modes
@@ -37,7 +37,7 @@ func (r *Rotation) Init(item *Item) *Rotation {
 	return r
 }
 
-func (r *Rotation) nextFull() {
+func (r *Rotate) nextFull() {
 	switch r.di {
 	case LWH:
 		r.item.W, r.item.H = r.item.H, r.item.W
@@ -60,7 +60,7 @@ func (r *Rotation) nextFull() {
 }
 
 // L = W
-func (r *Rotation) nextLeqW() {
+func (r *Rotate) nextLeqW() {
 	switch r.di {
 	case LWH:
 		r.item.W, r.item.H = r.item.H, r.item.W
@@ -74,7 +74,7 @@ func (r *Rotation) nextLeqW() {
 }
 
 // L = H
-func (r *Rotation) nextLeqH() {
+func (r *Rotate) nextLeqH() {
 	switch r.di {
 	case LWH:
 		r.item.W, r.item.H = r.item.H, r.item.W
@@ -88,7 +88,7 @@ func (r *Rotation) nextLeqH() {
 }
 
 // W = H
-func (r *Rotation) nextWeqH() {
+func (r *Rotate) nextWeqH() {
 	switch r.di {
 	case LWH:
 		r.item.L, r.item.W = r.item.W, r.item.L
@@ -102,11 +102,11 @@ func (r *Rotation) nextWeqH() {
 }
 
 // L = W = H
-func (r *Rotation) nextLeqWeqH() {
+func (r *Rotate) nextLeqWeqH() {
 	r.di = 0
 }
 
-func (r *Rotation) Next() {
+func (r *Rotate) Next() {
 	if r.mode == 1 {
 		r.nextLeqWeqH()
 		return
@@ -126,6 +126,6 @@ func (r *Rotation) Next() {
 	r.nextFull()
 }
 
-func (r *Rotation) NotEnd() bool {
+func (r *Rotate) NotEnd() bool {
 	return r.di > 0
 }

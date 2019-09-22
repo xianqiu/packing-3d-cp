@@ -30,17 +30,6 @@ func (s *SearchTree) Copy() *SearchTree {
 	return t
 }
 
-type Relation uint8
-
-const (
-	LEFT  Relation = 1
-	RIGHT Relation = 2
-	BACK  Relation = 3
-	FRONT Relation = 4
-	BELOW Relation = 5
-	ABOVE Relation = 6
-)
-
 func (s *SearchTree) addNode(index int) {
 	s.nodes[index] = true
 	s.rl.AddNode(index, s.ins.GetItem(index).L)

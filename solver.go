@@ -3,10 +3,15 @@ package packing_3d_cp
 func compare(tree *SearchTree, i, j int, resTree **SearchTree) bool {
 	ins := tree.ins
 	item := ins.GetItem(j)
-	for r := new(Rotation).Init(item); r.NotEnd(); r.Next() {
-		for a := Relation(1); a <= 6; a++ {
+	for r := new(Rotate).Init(item); r.NotEnd(); r.Next() {
+		a := new(Relate).Init(*ins.GetItem(i), *ins.GetItem(j))
+		// consider LEFT, BACK, BELOW for items 1 and 2
+		if i == 1 && j == 2 {
+			a.SetSpecial()
+		}
+		for ; a.NotEnd(); a.Next() {
 			newTree := tree.Copy()
-			newTree.AddArc(i, j, a)
+			newTree.AddArc(i, j, a.GetRelation())
 			if newTree.IsFeasible() {
 				if j == i+1 && j == (len(ins.items)-1) {
 					*resTree = newTree
@@ -45,7 +50,7 @@ func (c *Solver) Solve() bool {
 	//sort.Sort(c.ins.items)
 	t := new(SearchTree).Init(c.ins)
 	item0 := c.ins.GetItem(0)
-	for r := new(Rotation).Init(item0); r.NotEnd(); r.Next() {
+	for r := new(Rotate).Init(item0); r.NotEnd(); r.Next() {
 		if res := compare(t, 0, 1, &c.resTree); res {
 			return true
 		}
