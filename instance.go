@@ -48,7 +48,7 @@ func (s *Instance) Init() *Instance {
 func (s *Instance) Copy() *Instance {
 	ins := new(Instance)
 	ins.box = s.box
-	ins.items = make([]*Item, len(s.items))
+	ins.items = make([]*Item, 0, len(s.items))
 	for _, item := range s.items {
 		copyItem := Item{
 			item.L,

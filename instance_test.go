@@ -25,3 +25,14 @@ func TestInstance_Init(t *testing.T) {
 	s.GetItem(0).L = 100
 	println(s.GetItem(0).L)
 }
+
+func TestInstance_Copy(t *testing.T) {
+	ins := new(Instance).Init()
+	ins.SetBox(3, 4, 5)
+	ins.AddItem(1, 2, 3)
+	ins.AddItem(2, 3, 4)
+	insCopy := ins.Copy()
+	for _, item := range insCopy.GetItems() {
+		println(item.L, item.W, item.H)
+	}
+}

@@ -75,6 +75,9 @@ func (s *Solver) compare(tree *SearchTree, i, j int, t0 int64) bool {
 	ins := tree.ins
 	item := ins.GetItem(j)
 	for r := new(Rotate).Init(item); r.NotEnd(); r.Next() {
+		if s.isTimeout(t0) {
+			return s.returnTimeout()
+		}
 		a := new(Relate).Init(*ins.GetItem(i), *ins.GetItem(j))
 		// consider LEFT, BACK, BELOW for items 1 and 2
 		if i == 1 && j == 2 {
@@ -86,9 +89,6 @@ func (s *Solver) compare(tree *SearchTree, i, j int, t0 int64) bool {
 			if newTree.IsFeasible() {
 				if j == i+1 && j == (len(ins.items)-1) {
 					return s.returnFeasible(newTree)
-				}
-				if s.isTimeout(t0) {
-					return s.returnTimeout()
 				}
 				p, q := s.nextPair(i, j)
 				if res := s.compare(newTree, p, q, t0); res {
@@ -105,11 +105,12 @@ func (s *Solver) checkTriviallyInfeasible() bool {
 	return false
 }
 
-func (s *Solver) Solve() bool {
+func (s *Solver) Solve() {
 	now := time.Now().UnixNano()
 	// Step 1: Exclude trivial cases
 	if isTrivial := s.checkTriviallyInfeasible(); isTrivial {
-		return s.returnInfeasible()
+		s.status = INFEASIBLE
+		return
 	}
 	// Step 2: Sort instance w.r.t. volume
 	sort.Sort(s.ins.items)
@@ -118,13 +119,8 @@ func (s *Solver) Solve() bool {
 	// Step 4: Rotate item 1 and compare (1, 2) and the pairs after it.
 	item0 := s.ins.GetItem(0)
 	for r := new(Rotate).Init1(item0, &s.ins.box); r.NotEnd(); r.Next() {
-		if res := s.compare(tree, 0, 1, now); res {
-			return true
-		} else if s.status == TIMEOUT {
-			return false
-		}
+		s.compare(tree, 0, 1, now)
 	}
-	return false
 }
 
 // For multi-thread
