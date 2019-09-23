@@ -30,7 +30,7 @@ func TestRelationTree_AddChild(t *testing.T) {
 
 	for id, node := range r.nodes {
 		if result[id] != node.location {
-			t.Error("ERROR >> id", id, "location:", node, "expected:", result[id])
+			t.Error("STATUS >> id", id, "location:", node, "expected:", result[id])
 		} else {
 			t.Log("PASS >> id", id, "location:", node.location)
 		}

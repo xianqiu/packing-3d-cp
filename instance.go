@@ -31,9 +31,8 @@ func (items ItemList) Swap(i, j int) {
 //-------------------------//
 
 type Instance struct {
-	box        Box
-	items      ItemList
-	itemNumber int
+	box   Box
+	items ItemList
 }
 
 func (s *Instance) Init() *Instance {
@@ -44,6 +43,21 @@ func (s *Instance) Init() *Instance {
 	}
 	s.items = make(ItemList, 0)
 	return s
+}
+
+func (s *Instance) Copy() *Instance {
+	ins := new(Instance)
+	ins.box = s.box
+	ins.items = make([]*Item, len(s.items))
+	for _, item := range s.items {
+		copyItem := Item{
+			item.L,
+			item.W,
+			item.H,
+		}
+		ins.items = append(ins.items, &copyItem)
+	}
+	return ins
 }
 
 func (s *Instance) SetBox(length, width, height float64) {

@@ -12,10 +12,9 @@ const (
 )
 
 type Rotate struct {
-	di      Direction
-	item    *Item
-	mode    int
-	rotated map[Direction]Item
+	di   Direction
+	item *Item
+	mode int
 }
 
 func (r *Rotate) Init(item *Item) *Rotate {
@@ -29,6 +28,26 @@ func (r *Rotate) Init(item *Item) *Rotate {
 	} else if r.item.L == r.item.H {
 		r.mode = 3
 	} else if r.item.W == r.item.H {
+		r.mode = 4
+	} else {
+		r.mode = 5
+	}
+	return r
+}
+
+// For the first item only.
+func (r *Rotate) Init1(item *Item, box *Box) *Rotate {
+	r.di = LWH
+	r.item = item
+	// 4 modes
+	if (r.item.L == r.item.W && r.item.L == r.item.H) ||
+		(box.L == box.W && box.L == box.H) {
+		r.mode = 1
+	} else if r.item.L == r.item.W || box.L == box.W {
+		r.mode = 2
+	} else if r.item.L == r.item.H || box.L == box.H {
+		r.mode = 3
+	} else if r.item.W == r.item.H || box.W == box.H {
 		r.mode = 4
 	} else {
 		r.mode = 5

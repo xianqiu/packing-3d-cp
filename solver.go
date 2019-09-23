@@ -1,6 +1,77 @@
 package packing_3d_cp
 
-func compare(tree *SearchTree, i, j int, resTree **SearchTree) bool {
+import (
+	"sort"
+	"time"
+)
+
+type Solver struct {
+	ins          *Instance
+	resTree      *SearchTree
+	timeout      int // mini second
+	status       STATUS
+	threadStatus chan STATUS
+}
+
+type STATUS uint8
+
+const (
+	UNEXPECTED = 0
+	FEASIBLE   = 1
+	INFEASIBLE = 2
+	TIMEOUT    = 3
+)
+
+func (s *Solver) Init(ins *Instance) *Solver {
+	s.ins = ins
+	s.resTree = new(SearchTree)
+	s.timeout = 1000
+	s.status = UNEXPECTED
+	return s
+}
+
+func (s *Solver) SetTimeout(miniSeconds int) {
+	s.timeout = miniSeconds
+}
+
+func (s *Solver) isTimeout(t0 int64) bool {
+	t1 := time.Now().UnixNano()
+	if t1-t0 > int64(s.timeout)*1e6 {
+		return true
+	}
+	return false
+}
+
+func (s *Solver) returnFeasible(resTree *SearchTree) bool {
+	s.resTree = resTree
+	s.status = FEASIBLE
+	return true
+}
+
+func (s *Solver) returnInfeasible() bool {
+	s.status = INFEASIBLE
+	return false
+}
+
+func (s *Solver) returnTimeout() bool {
+	s.status = TIMEOUT
+	return false
+}
+
+// Given items i and j, compute the next pair of items to be compared
+func (s *Solver) nextPair(i, j int) (int, int) {
+	var p, q int
+	if j == i+1 {
+		p = 0
+		q = j + 1
+	} else {
+		p = i + 1
+		q = j
+	}
+	return p, q
+}
+
+func (s *Solver) compare(tree *SearchTree, i, j int, t0 int64) bool {
 	ins := tree.ins
 	item := ins.GetItem(j)
 	for r := new(Rotate).Init(item); r.NotEnd(); r.Next() {
@@ -14,60 +85,81 @@ func compare(tree *SearchTree, i, j int, resTree **SearchTree) bool {
 			newTree.AddArc(i, j, a.GetRelation())
 			if newTree.IsFeasible() {
 				if j == i+1 && j == (len(ins.items)-1) {
-					*resTree = newTree
-					return true
+					return s.returnFeasible(newTree)
 				}
-				var p, q int
-				if j == i+1 {
-					p = 0
-					q = j + 1
-				} else {
-					p = i + 1
-					q = j
+				if s.isTimeout(t0) {
+					return s.returnTimeout()
 				}
-				if res := compare(newTree, p, q, resTree); res {
+				p, q := s.nextPair(i, j)
+				if res := s.compare(newTree, p, q, t0); res {
 					return true
 				}
 			}
 		}
 	}
+	return s.returnInfeasible()
+}
+
+func (s *Solver) checkTriviallyInfeasible() bool {
+	// TODO:
 	return false
 }
 
-type Solver struct {
-	ins     *Instance
-	resTree *SearchTree
-}
-
-func (c *Solver) New(ins *Instance) *Solver {
-	c.ins = ins
-	c.resTree = new(SearchTree)
-	return c
-}
-
-func (c *Solver) Solve() bool {
-	// TODO: Uncomment.
-	//sort.Sort(c.ins.items)
-	t := new(SearchTree).Init(c.ins)
-	item0 := c.ins.GetItem(0)
-	for r := new(Rotate).Init(item0); r.NotEnd(); r.Next() {
-		if res := compare(t, 0, 1, &c.resTree); res {
+func (s *Solver) Solve() bool {
+	now := time.Now().UnixNano()
+	// Step 1: Exclude trivial cases
+	if isTrivial := s.checkTriviallyInfeasible(); isTrivial {
+		return s.returnInfeasible()
+	}
+	// Step 2: Sort instance w.r.t. volume
+	sort.Sort(s.ins.items)
+	// Step 3: Initialize search tree
+	tree := new(SearchTree).Init(s.ins)
+	// Step 4: Rotate item 1 and compare (1, 2) and the pairs after it.
+	item0 := s.ins.GetItem(0)
+	for r := new(Rotate).Init1(item0, &s.ins.box); r.NotEnd(); r.Next() {
+		if res := s.compare(tree, 0, 1, now); res {
 			return true
+		} else if s.status == TIMEOUT {
+			return false
 		}
 	}
 	return false
 }
 
-func (c *Solver) PrintResTree() {
-	if c.resTree == nil {
+// For multi-thread
+// Note: Do not use it alone
+func (s *Solver) solve1(result chan *Solver) {
+	now := time.Now().UnixNano()
+	// Step 1: Exclude trivial cases
+	if isTrivial := s.checkTriviallyInfeasible(); isTrivial {
+		s.status = INFEASIBLE
+		result <- s
 		return
 	}
-	c.resTree.PrintTree()
+	// Step 2: Sort instance w.r.t. volume
+	sort.Sort(s.ins.items)
+	// Step 3: Initialize search tree
+	tree := new(SearchTree).Init(s.ins)
+	// Step 4: compare (1, 2) and the pairs after it.
+	s.compare(tree, 0, 1, now)
+	result <- s
 }
 
-func (c *Solver) PrintItems() {
-	if c.resTree == nil {
+func (s *Solver) PrintResTree() {
+	if s.resTree == nil {
 		return
 	}
-	c.resTree.PrintItems()
+	s.resTree.PrintTree()
+}
+
+func (s *Solver) PrintItems() {
+	if s.resTree == nil {
+		return
+	}
+	s.resTree.PrintItems()
+}
+
+func (s *Solver) GetStatus() STATUS {
+	return s.status
 }
