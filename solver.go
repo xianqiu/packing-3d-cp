@@ -8,7 +8,7 @@ import (
 type Solver struct {
 	ins          *Instance
 	resTree      *SearchTree
-	timeout      int // mini second
+	timeout      int // millisecond
 	status       STATUS
 	threadStatus chan STATUS
 }
@@ -125,21 +125,25 @@ func (s *Solver) Solve() {
 
 // For multi-thread
 // Note: Do not use it alone
-func (s *Solver) solve1(result chan *Solver) {
+func (s *Solver) solve1(resTree chan *SearchTree, result chan STATUS, infeasibleCount chan int) {
 	now := time.Now().UnixNano()
-	// Step 1: Exclude trivial cases
-	if isTrivial := s.checkTriviallyInfeasible(); isTrivial {
-		s.status = INFEASIBLE
-		result <- s
-		return
-	}
-	// Step 2: Sort instance w.r.t. volume
+	// Step 1: Sort instance w.r.t. volume
 	sort.Sort(s.ins.items)
-	// Step 3: Initialize search tree
+	// Step 2: Initialize search tree
 	tree := new(SearchTree).Init(s.ins)
-	// Step 4: compare (1, 2) and the pairs after it.
+	// Step 3: compare (1, 2) and the pairs after it.
 	s.compare(tree, 0, 1, now)
-	result <- s
+	if s.status == FEASIBLE {
+		result <- FEASIBLE
+		resTree <- s.resTree
+	} else if s.status == INFEASIBLE {
+		a := <-infeasibleCount - 1
+		if a == 0 {
+			result <- INFEASIBLE
+		} else {
+			infeasibleCount <- a
+		}
+	}
 }
 
 func (s *Solver) PrintResTree() {

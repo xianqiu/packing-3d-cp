@@ -148,3 +148,15 @@ func (r *Rotate) Next() {
 func (r *Rotate) NotEnd() bool {
 	return r.di > 0
 }
+
+func (r *Rotate) GetDiNum() int {
+	switch r.mode {
+	case 1:
+		return 1
+	case 2, 3, 4:
+		return 3
+	case 5:
+		return 6
+	}
+	return -1
+}
