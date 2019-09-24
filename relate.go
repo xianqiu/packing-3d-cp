@@ -18,18 +18,7 @@ type Relate struct {
 
 func (r *Relate) Init(itemI Item, itemJ Item) *Relate {
 	r.index = 0
-	r.relations = append(r.relations, LEFT)
-	if itemI.L != itemJ.L {
-		r.relations = append(r.relations, RIGHT)
-	}
-	r.relations = append(r.relations, BACK)
-	if itemI.W != itemJ.W {
-		r.relations = append(r.relations, FRONT)
-	}
-	r.relations = append(r.relations, BELOW)
-	if itemI.H != itemJ.H {
-		r.relations = append(r.relations, ABOVE)
-	}
+	r.relations = []Relation{LEFT, RIGHT, BACK, FRONT, BELOW, ABOVE}
 	return r
 }
 

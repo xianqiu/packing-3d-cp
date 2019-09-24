@@ -84,7 +84,6 @@ func (s *Solver) compare(tree *SearchTree, i, j int, t0 int64) bool {
 			a.SetSpecial()
 		}
 		for ; a.NotEnd(); a.Next() {
-			println("i, j, r, a =", i, j, r.di, a.GetRelation())
 			newTree := tree.Copy()
 			newTree.AddArc(i, j, a.GetRelation())
 			if newTree.IsFeasible() {

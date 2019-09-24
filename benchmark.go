@@ -101,7 +101,6 @@ func (b *Benchmark) Run() {
 	t0 := time.Now().UnixNano()
 	solver := new(Solver)
 	for id, ins := range b.instances {
-		println(id)
 		solver.Init(&ins)
 		solver.Solve()
 		if solver.GetStatus() == FEASIBLE && b.answers[id] == INFEASIBLE ||
