@@ -86,9 +86,10 @@ func (s *SearchTree) GetXyzOfB(id int) (float64, float64, float64) {
 
 func (s *SearchTree) IsFeasible() bool {
 	boundaryIds := s.getBoundaryIds()
+	eps := 1e-6
 	for id := range boundaryIds {
 		l, w, h := s.GetXyzOfB(id)
-		if l > s.ins.box.L || w > s.ins.box.W || h > s.ins.box.H {
+		if l > s.ins.box.L+eps || w > s.ins.box.W+eps || h > s.ins.box.H+eps {
 			return false
 		}
 	}

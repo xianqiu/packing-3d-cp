@@ -73,3 +73,21 @@ func TestSolver_Solve3(t *testing.T) {
 	//solver.PrintResTree()
 	//solver.PrintItems()
 }
+
+func TestSolver_Solve4(t *testing.T) {
+	ins := new(Instance).Init()
+	ins.SetBox(76.4, 88.8, 64.1)
+	ins.AddItem(76.4, 88.8, 7.9)
+	ins.AddItem(76.4, 37.3, 54.9)
+	ins.AddItem(76.4, 51.5, 54.9)
+	ins.AddItem(55.8, 88.8, 1.3)
+	ins.AddItem(20.6, 88.8, 1.3)
+
+	solver := new(Solver).Init(ins)
+	t0 := time.Now().UnixNano()
+	solver.Solve()
+	println("time cost:", (time.Now().UnixNano()-t0)/1e6)
+	println("status", solver.GetStatus())
+	//solver.PrintResTree()
+	//solver.PrintItems()
+}

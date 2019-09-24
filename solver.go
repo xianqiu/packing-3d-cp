@@ -58,7 +58,7 @@ func (s *Solver) returnTimeout() bool {
 	return false
 }
 
-// Given items i and j, compute the next pair of items to be compared
+// Given Items i and j, compute the next pair of Items to be compared
 func (s *Solver) nextPair(i, j int) (int, int) {
 	var p, q int
 	if j == i+1 {
@@ -79,11 +79,12 @@ func (s *Solver) compare(tree *SearchTree, i, j int, t0 int64) bool {
 			return s.returnTimeout()
 		}
 		a := new(Relate).Init(*ins.GetItem(i), *ins.GetItem(j))
-		// consider LEFT, BACK, BELOW for items 1 and 2
+		// consider LEFT, BACK, BELOW for Items 1 and 2
 		if i == 1 && j == 2 {
 			a.SetSpecial()
 		}
 		for ; a.NotEnd(); a.Next() {
+			println("i, j, r, a =", i, j, r.di, a.GetRelation())
 			newTree := tree.Copy()
 			newTree.AddArc(i, j, a.GetRelation())
 			if newTree.IsFeasible() {
@@ -118,8 +119,17 @@ func (s *Solver) Solve() {
 	tree := new(SearchTree).Init(s.ins)
 	// Step 4: Rotate item 1 and compare (1, 2) and the pairs after it.
 	item0 := s.ins.GetItem(0)
+	markAsTimeout := false
 	for r := new(Rotate).Init1(item0, &s.ins.box); r.NotEnd(); r.Next() {
 		s.compare(tree, 0, 1, now)
+		if s.status == FEASIBLE {
+			return
+		} else if s.status == TIMEOUT {
+			markAsTimeout = true
+		}
+	}
+	if markAsTimeout {
+		s.status = TIMEOUT
 	}
 }
 

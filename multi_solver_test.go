@@ -8,7 +8,6 @@ import (
 func TestMultiSolver_Solve(t *testing.T) {
 	ins := new(Instance).Init()
 	ins.SetBox(4, 5, 6)
-	ins.SetBox(4, 5, 6)
 	ins.AddItem(3, 4, 3)
 	ins.AddItem(2, 4, 3)
 	ins.AddItem(2, 3, 2)
