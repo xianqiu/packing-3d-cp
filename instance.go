@@ -1,5 +1,7 @@
 package packing_3d_cp
 
+import "fmt"
+
 type Box struct {
 	L, W, H float64
 }
@@ -85,4 +87,28 @@ func (s *Instance) GetBox() *Box {
 
 func (s *Instance) GetItems() ItemList {
 	return s.items
+}
+
+func (s *Instance) Print() {
+	fmt.Printf("box: (%.2f, %.2f, %.2f)\n", s.box.L, s.box.W, s.box.H)
+	n := 5
+	fullStr := ""
+	for i := 0; i < len(s.items); i++ {
+		itemStr := fmt.Sprintf("(%.2f, %.2f, %.2f)", s.items[i].L, s.items[i].W, s.items[i].H)
+		if fullStr == "" {
+			fullStr = itemStr
+			continue
+		}
+		if fullStr[len(fullStr)-1] == '\n' {
+			fullStr += " " + itemStr
+			continue
+		}
+		fullStr += ", " + itemStr
+		if (i+1)%n == 0 {
+			fullStr += "\n"
+		}
+	}
+	fullStr = "[" + fullStr + "]"
+	println("items:")
+	println(fullStr)
 }

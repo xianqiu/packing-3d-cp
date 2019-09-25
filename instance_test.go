@@ -36,3 +36,17 @@ func TestInstance_Copy(t *testing.T) {
 		println(item.L, item.W, item.H)
 	}
 }
+
+func TestInstance_Print(t *testing.T) {
+	ins := new(Instance).Init()
+	ins.SetBox(3, 4, 5)
+	ins.AddItem(1, 2, 3)
+	ins.AddItem(2, 3, 4)
+	ins.AddItem(1, 2, 3)
+	ins.AddItem(2, 3, 4)
+	ins.AddItem(1, 2, 3)
+	ins.AddItem(2, 3, 4)
+	ins.AddItem(1, 2, 3)
+	ins.AddItem(2, 3, 4)
+	ins.Print()
+}
