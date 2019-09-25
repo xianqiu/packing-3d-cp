@@ -11,16 +11,20 @@ import (
 //--------------//
 
 type RelationNode struct {
-	id       int
-	weight   float64
-	location float64
+	id          int
+	weight      float64
+	location    float64
+	childrenIds *IdSet
+	parentId    int
 }
 
 func (n *RelationNode) New(id int, weight float64) *RelationNode {
 	m := &RelationNode{
-		id:       id,
-		weight:   weight,
-		location: 0,
+		id:          id,
+		weight:      weight,
+		location:    0,
+		childrenIds: new(IdSet).Init(),
+		parentId:    -1,
 	}
 	return m
 }
@@ -30,7 +34,13 @@ func (n *RelationNode) Copy() *RelationNode {
 	m.id = n.id
 	m.weight = n.weight
 	m.location = n.location
+	m.childrenIds = n.childrenIds.Copy()
+	m.parentId = n.parentId
 	return m
+}
+
+func (n *RelationNode) HasParent() bool {
+	return n.parentId != -1
 }
 
 //--------------//
@@ -39,67 +49,55 @@ func (n *RelationNode) Copy() *RelationNode {
 
 type RelationTree struct {
 	nodes       map[int]*RelationNode
-	arcs        map[int][]int
 	boundary    float64
-	boundaryIds map[int]bool
+	boundaryIds *IdSet
 }
 
 func (r *RelationTree) Init() *RelationTree {
 	r.nodes = make(map[int]*RelationNode)
-	r.arcs = make(map[int][]int)
 	r.boundary = 0
-	r.boundaryIds = make(map[int]bool)
+	r.boundaryIds = new(IdSet).Init()
 	return r
 }
 
 func (r *RelationTree) Copy() *RelationTree {
 	s := new(RelationTree)
 	s.nodes = make(map[int]*RelationNode)
-	s.arcs = make(map[int][]int)
 	s.boundary = r.boundary
-	s.boundaryIds = make(map[int]bool)
-
 	for k := range r.nodes {
 		s.nodes[k] = r.nodes[k].Copy()
 	}
-	for k := range r.arcs {
-		s.arcs[k] = make([]int, 0, len(r.arcs))
-		childIds := r.arcs[k]
-		for _, id := range childIds {
-			s.arcs[k] = append(s.arcs[k], id)
-		}
-	}
-	for k := range r.boundaryIds {
-		s.boundaryIds[k] = true
-	}
+	s.boundaryIds = r.boundaryIds.Copy()
 	return s
 }
 
 // Do the following things:
-// 1. If node exists, update node weight and the locations of the subtree rooted at the node
-// 2. If node does not exist, add a new node and init arc set
+// 1. If node exists, update node weight and the locations of its children
+// 2. If node does not exist, add a new node
 // 3. Update boundary ids
 func (r *RelationTree) AddNode(id int, weight float64) {
+	node := new(RelationNode).New(id, weight)
 	if _, ok := r.nodes[id]; ok {
-		r.updateNode(id, weight)
+		r.updateNode(node)
 	} else {
-		r.nodes[id] = new(RelationNode).New(id, weight)
-		r.arcs[id] = make([]int, 0)
+		r.nodes[id] = node
 	}
 	r.updateBoundaryIds(id)
 }
 
+// TODO: FIX THIS
 // Do the following things:
-// 1. Update node weight
-// 2. Update locations of the subtree rooted at the node
-func (r *RelationTree) updateNode(id int, weight float64) {
-	if r.GetNode(id).weight == weight {
+// 1. Update node weight and location
+// 2. Recursively update locations of its children
+func (r *RelationTree) updateNode(newNode *RelationNode) {
+	node := r.GetNode(newNode.id)
+	delta := newNode.weight - node.weight + newNode.location - node.location
+	if delta == 0 {
 		return
 	}
-	r.GetNode(id).weight = weight
-	childIds := r.arcs[id]
-	for _, childId := range childIds {
-		r.updateLocations(id, childId)
+	node = newNode
+	for childId := range *node.childrenIds {
+		r.GetNode(childId).location += delta
 	}
 }
 
@@ -108,56 +106,58 @@ func (r *RelationTree) GetNode(id int) *RelationNode {
 }
 
 // Do The following things:
-// 1. Add arc i -> j
-// 2. AddArc the locations of the subtree rooted at the child
-// 3. AddArc the boundary ids of the relation tree
+// 1. Add arc i -> j and mark i as j's parent
+// 2. Add arc i -> j's children
+// 3. Add i's children to i's parent
+// 4. Update the locations of j and j's children
+// 5. Update the boundary ids of the relation tree
 func (r *RelationTree) AddArc(i, j int) {
-	r.arcs[i] = append(r.arcs[i], j)
-	r.updateLocations(i, j)
-	r.updateBoundaryIds(j)
-}
-
-func (r *RelationTree) isLeaf(id int) bool {
-	return len(r.arcs[id]) == 0
-}
-
-// AddArc the boundary ids of the subtree rooted at the node
-func (r *RelationTree) updateBoundaryIds(id int) {
-	node := r.GetNode(id)
-	if r.isLeaf(id) {
-		b := node.location + node.weight
-		if b > r.boundary {
-			r.boundary = b
-			r.boundaryIds = map[int]bool{node.id: true}
-		} else if b == r.boundary {
-			r.boundaryIds[node.id] = true
-		}
-		return
-	}
-	// else recursively AddArc childIds of the child
-	childIds := r.arcs[node.id]
-	for _, id := range childIds {
-		r.updateBoundaryIds(id)
-	}
-}
-
-// AddArc locations of the subtree rooted at the child
-func (r *RelationTree) updateLocations(i, j int) {
 	parent := r.GetNode(i)
 	child := r.GetNode(j)
-	newLoc := parent.weight + parent.location
-	if newLoc > child.location {
-		child.location = newLoc
+	child.parentId = parent.id
+	parent.childrenIds.Add(child.id)
+	parent.childrenIds.Union(child.childrenIds)
+	if parent.HasParent() {
+		grandpa := r.GetNode(parent.parentId)
+		grandpa.childrenIds.Union(parent.childrenIds)
 	}
-	// if child has no childIds, then return
-	if r.isLeaf(child.id) {
+	r.updateNodePair(i, j)
+	r.updateBoundaryIds(j)
+	for childId := range *r.GetNode(j).childrenIds {
+		r.updateBoundaryIds(childId)
+	}
+}
+
+func (r *RelationTree) HasChildren(id int) bool {
+	return r.GetNode(id).childrenIds.Size() > 0
+}
+
+// If the node is a boundary node
+// Then add its id to the boundary id set
+func (r *RelationTree) updateBoundaryIds(id int) {
+	if r.HasChildren(id) {
 		return
 	}
-	// else recursively add arc to childIds of the child
-	childIds := r.arcs[child.id]
-	for _, id := range childIds {
-		r.updateLocations(child.id, id)
+	node := r.GetNode(id)
+	b := node.location + node.weight
+	if b > r.boundary {
+		r.boundary = b
+		r.boundaryIds = new(IdSet).Init()
+		r.boundaryIds.Add(node.id)
+	} else if b == r.boundary {
+		r.boundaryIds.Add(node.id)
 	}
+}
+
+// TODO: FIX THIS
+// Update node j with new location: i.location + i.weight
+func (r *RelationTree) updateNodePair(i, j int) {
+	parent := r.GetNode(i)
+	child := r.GetNode(j)
+	if newLoc := parent.weight + parent.location; newLoc > child.location {
+		child.location = newLoc
+	}
+	r.updateNode(child.Copy())
 }
 
 func (r *RelationTree) PrintTree(name string) {
@@ -165,10 +165,10 @@ func (r *RelationTree) PrintTree(name string) {
 	if r == nil {
 		return
 	}
-	for k := range r.arcs {
-		childIds := r.arcs[k]
-		c := make([]string, 0, len(childIds))
-		for _, id := range childIds {
+	for k, node := range r.nodes {
+		childIds := node.childrenIds
+		c := make([]string, 0, childIds.Size())
+		for id := range *childIds {
 			c = append(c, r.formatNodeStr(id))
 		}
 		fmt.Printf("  - %s -> %s\n", r.formatNodeStr(k), strings.Join(c, ", "))

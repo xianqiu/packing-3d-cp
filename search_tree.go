@@ -58,13 +58,13 @@ func (s *SearchTree) AddArc(i, j int, a Relation) {
 
 func (s *SearchTree) getBoundaryIds() map[int]bool {
 	ids := make(map[int]bool)
-	for k := range s.rl.boundaryIds {
+	for k := range *s.rl.boundaryIds {
 		ids[k] = true
 	}
-	for k := range s.rw.boundaryIds {
+	for k := range *s.rw.boundaryIds {
 		ids[k] = true
 	}
-	for k := range s.rh.boundaryIds {
+	for k := range *s.rh.boundaryIds {
 		ids[k] = true
 	}
 	return ids

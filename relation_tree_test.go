@@ -30,7 +30,7 @@ func TestRelationTree_AddChild(t *testing.T) {
 
 	for id, node := range r.nodes {
 		if result[id] != node.location {
-			t.Error("STATUS >> id", id, "location:", node, "expected:", result[id])
+			t.Error("STATUS >> id", id, "location:", node.location, "expected:", result[id])
 		} else {
 			t.Log("PASS >> id", id, "location:", node.location)
 		}
@@ -103,7 +103,7 @@ func TestRelationTree_BoundaryNodes1(t *testing.T) {
 	r.AddArc(1, 5)
 
 	for i := 3; i < 6; i++ {
-		if _, ok := r.boundaryIds[i]; !ok {
+		if r.boundaryIds.IsExist(i) {
 			t.Error(i, " is expected to be a boundary node")
 		}
 	}
@@ -122,29 +122,34 @@ func TestRelationTree_BoundaryNodes2(t *testing.T) {
 	r.AddNode(4, 3)
 	r.AddArc(2, 4)
 	r.PrintTree("")
-	if len(r.boundaryIds) != 2 {
-		t.Error("|boundary ids| =", len(r.boundaryIds))
+	if r.boundaryIds.Size() != 2 {
+		t.Error("|boundary ids| =", r.boundaryIds.Size())
 	}
-	if _, ok := r.boundaryIds[3]; !ok {
+
+	for id := range *r.boundaryIds {
+		println(id)
+	}
+
+	if !r.boundaryIds.IsExist(3) {
 		t.Error("3 is expected to be a boundary node")
 	}
-	if _, ok := r.boundaryIds[4]; !ok {
+	if !r.boundaryIds.IsExist(4) {
 		t.Error("4 is expected to be a boundary node")
 	}
 
 	r.AddNode(5, 10)
 	r.AddArc(1, 5)
 
-	if len(r.boundaryIds) != 1 {
-		t.Error("|boundary ids| =", len(r.boundaryIds))
+	if r.boundaryIds.Size() != 1 {
+		t.Error("|boundary ids| =", r.boundaryIds.Size())
 	}
-	if _, ok := r.boundaryIds[5]; !ok {
+	if !r.boundaryIds.IsExist(5) {
 		t.Error("5 is expected")
 	}
 
 	r = r.Init()
 	r.AddNode(1, 1)
-	if len(r.boundaryIds) != 1 {
-		t.Error("|boundary ids| =", len(r.boundaryIds))
+	if r.boundaryIds.Size() != 1 {
+		t.Error("|boundary ids| =", r.boundaryIds.Size())
 	}
 }
