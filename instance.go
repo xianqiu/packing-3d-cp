@@ -90,7 +90,7 @@ func (s *Instance) GetItems() ItemList {
 }
 
 func (s *Instance) Print() {
-	fmt.Printf("box: (%.2f, %.2f, %.2f)\n", s.box.L, s.box.W, s.box.H)
+	println(fmt.Sprintf("box: (%.2f, %.2f, %.2f)", s.box.L, s.box.W, s.box.H))
 	n := 5
 	fullStr := ""
 	for i := 0; i < len(s.items); i++ {
@@ -104,11 +104,11 @@ func (s *Instance) Print() {
 			continue
 		}
 		fullStr += ", " + itemStr
-		if (i+1)%n == 0 {
+		if (i+1)%n == 0 && i != len(s.items)-1 {
 			fullStr += "\n"
 		}
 	}
-	fullStr = "[" + fullStr + "]"
+	fullStr = "[" + fullStr + "]\n"
 	println("items:")
 	println(fullStr)
 }

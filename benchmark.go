@@ -12,16 +12,18 @@ import (
 )
 
 type Benchmark struct {
-	instances map[string]Instance
-	answers   map[string]STATUS
-	solvedNum int
-	timeCost  float64
-	errId     string
+	instances     map[string]Instance
+	answers       map[string]STATUS
+	solvedNum     int
+	timeCost      float64
+	errId         string
+	maxItemNumber int
 }
 
 func (b *Benchmark) Init() *Benchmark {
 	b.instances = make(map[string]Instance)
 	b.answers = make(map[string]STATUS)
+	b.maxItemNumber = 0
 	return b
 }
 
@@ -102,6 +104,9 @@ func (b *Benchmark) Run() {
 	solver := new(Solver)
 	for id, ins := range b.instances {
 		solver.Init(&ins)
+		if b.maxItemNumber > 0 && len(ins.items) > b.maxItemNumber {
+			continue
+		}
 		solver.Solve()
 		if solver.GetStatus() == FEASIBLE && b.answers[id] == INFEASIBLE ||
 			solver.GetStatus() == INFEASIBLE && b.answers[id] == FEASIBLE {
@@ -112,6 +117,10 @@ func (b *Benchmark) Run() {
 	b.timeCost = float64(time.Now().UnixNano()-t0) / 1e9
 }
 
+func (b *Benchmark) SetMaxItemNumber(n int) {
+	b.maxItemNumber = n
+}
+
 func (b *Benchmark) PrintReport() {
 	if b.errId != "" {
 		println("Error found in instance:", b.errId)
@@ -120,4 +129,11 @@ func (b *Benchmark) PrintReport() {
 	unsolvedNum := len(b.answers) - b.solvedNum
 	println("instances solved:", b.solvedNum, " instances unsolved:", unsolvedNum)
 	fmt.Printf("total time cost: %.2f\n", b.timeCost)
+}
+
+func (b *Benchmark) PrintInstance(instanceId string) {
+	println("instance id:", instanceId)
+	ins := new(Instance)
+	*ins = b.instances[instanceId]
+	ins.Print()
 }
