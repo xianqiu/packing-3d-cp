@@ -4,7 +4,7 @@ import "fmt"
 
 type SearchTree struct {
 	ins        *Instance
-	nodes      map[int]bool
+	nodes      map[int]bool // TODO: use IdSet
 	rl, rw, rh *RelationTree
 }
 
@@ -37,6 +37,9 @@ func (s *SearchTree) addNode(index int) {
 	s.rh.AddNode(index, s.ins.GetItem(index).H)
 }
 
+// Do the following things
+// 1. Create two nodes i, j (if not exist)
+// 2. Add arc (i, j)
 func (s *SearchTree) AddArc(i, j int, a Relation) {
 	s.addNode(i)
 	s.addNode(j)
@@ -54,6 +57,25 @@ func (s *SearchTree) AddArc(i, j int, a Relation) {
 	case ABOVE: // i is above j
 		s.rh.AddArc(j, i)
 	}
+}
+
+func (s *SearchTree) IsArcExist(i, j int, a Relation) bool {
+	res := false
+	switch a {
+	case LEFT: // i is to the left of j
+		res = s.rl.IsArcExist(i, j) // Note: "break" is automatic
+	case RIGHT: // i is to the right of j
+		res = s.rl.IsArcExist(j, i)
+	case BACK: // i is in the back of j
+		res = s.rw.IsArcExist(i, j)
+	case FRONT: // i is in the front of j
+		res = s.rw.IsArcExist(j, i)
+	case BELOW: // i is below j
+		res = s.rh.IsArcExist(i, j)
+	case ABOVE: // i is above j
+		res = s.rh.IsArcExist(j, i)
+	}
+	return res
 }
 
 func (s *SearchTree) getBoundaryIds() map[int]bool {

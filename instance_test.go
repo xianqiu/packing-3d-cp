@@ -35,6 +35,9 @@ func TestInstance_Copy(t *testing.T) {
 	for _, item := range insCopy.GetItems() {
 		println(item.L, item.W, item.H)
 	}
+	item := insCopy.GetItem(0)
+	item.L = 100
+	println(insCopy.GetItem(0).L, ins.GetItem(0).L)
 }
 
 func TestInstance_Print(t *testing.T) {

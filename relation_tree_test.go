@@ -103,7 +103,7 @@ func TestRelationTree_BoundaryNodes1(t *testing.T) {
 	r.AddArc(1, 5)
 
 	for i := 3; i < 6; i++ {
-		if r.boundaryIds.IsExist(i) {
+		if !r.boundaryIds.IsExist(i) {
 			t.Error(i, " is expected to be a boundary node")
 		}
 	}

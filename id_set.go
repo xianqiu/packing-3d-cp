@@ -10,6 +10,9 @@ func (d *IdSet) Init() *IdSet {
 }
 
 func (d *IdSet) Copy() *IdSet {
+	if d == nil {
+		return nil
+	}
 	e := new(IdSet)
 	*e = make(IdSet)
 	for id := range *d {

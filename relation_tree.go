@@ -76,29 +76,12 @@ func (r *RelationTree) Copy() *RelationTree {
 // 2. If node does not exist, add a new node
 // 3. Update boundary ids
 func (r *RelationTree) AddNode(id int, weight float64) {
-	node := new(RelationNode).New(id, weight)
 	if _, ok := r.nodes[id]; ok {
-		r.updateNode(node)
+		r.updateNodeWeight(id, weight)
 	} else {
-		r.nodes[id] = node
+		r.nodes[id] = new(RelationNode).New(id, weight)
 	}
 	r.updateBoundaryIds(id)
-}
-
-// TODO: FIX THIS
-// Do the following things:
-// 1. Update node weight and location
-// 2. Recursively update locations of its children
-func (r *RelationTree) updateNode(newNode *RelationNode) {
-	node := r.GetNode(newNode.id)
-	delta := newNode.weight - node.weight + newNode.location - node.location
-	if delta == 0 {
-		return
-	}
-	node = newNode
-	for childId := range *node.childrenIds {
-		r.GetNode(childId).location += delta
-	}
 }
 
 func (r *RelationTree) GetNode(id int) *RelationNode {
@@ -121,7 +104,7 @@ func (r *RelationTree) AddArc(i, j int) {
 		grandpa := r.GetNode(parent.parentId)
 		grandpa.childrenIds.Union(parent.childrenIds)
 	}
-	r.updateNodePair(i, j)
+	r.updateNodeLocationFromArc(i, j)
 	r.updateBoundaryIds(j)
 	for childId := range *r.GetNode(j).childrenIds {
 		r.updateBoundaryIds(childId)
@@ -149,15 +132,49 @@ func (r *RelationTree) updateBoundaryIds(id int) {
 	}
 }
 
-// TODO: FIX THIS
 // Update node j with new location: i.location + i.weight
-func (r *RelationTree) updateNodePair(i, j int) {
+func (r *RelationTree) updateNodeLocationFromArc(i, j int) {
 	parent := r.GetNode(i)
 	child := r.GetNode(j)
-	if newLoc := parent.weight + parent.location; newLoc > child.location {
-		child.location = newLoc
+	r.updateNodeLocation(child.id, parent.weight+parent.location)
+}
+
+// Do the following things:
+// 1. Update location of node
+// 2. Update the locations of its children
+func (r *RelationTree) updateNodeLocation(id int, newLoc float64) {
+	node := r.GetNode(id)
+	delta := newLoc - node.location
+	if delta == 0 {
+		return
 	}
-	r.updateNode(child.Copy())
+	node.location = newLoc
+	for childId := range *node.childrenIds {
+		r.GetNode(childId).location += delta
+	}
+}
+
+// Do the following things:
+// 1. Update node weight
+// 2. Update the locations of its children
+// 3. Update boundary ids
+func (r *RelationTree) updateNodeWeight(id int, weight float64) {
+	node := r.GetNode(id)
+	delta := weight - node.weight
+	if delta == 0 {
+		return
+	}
+	for childId := range *node.childrenIds {
+		r.GetNode(childId).location += delta
+	}
+}
+
+func (r *RelationTree) IsArcExist(i, j int) bool {
+	node := r.GetNode(i)
+	if node == nil {
+		return false
+	}
+	return node.childrenIds.IsExist(j)
 }
 
 func (r *RelationTree) PrintTree(name string) {
