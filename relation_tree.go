@@ -177,6 +177,23 @@ func (r *RelationTree) IsArcExist(i, j int) bool {
 	return node.childrenIds.IsExist(j)
 }
 
+// Assert whether there is a directed path from i to j
+func (r *RelationTree) IsArcFeasible(i, j int) bool {
+	res := false
+	r.dfs(i, j, &res)
+	return res
+}
+
+func (r *RelationTree) dfs(rootId int, targetId int, res *bool) {
+	if rootId == targetId {
+		*res = true
+		return
+	}
+	for _, childId := range r.arcs[rootId] {
+		r.dfs(childId, targetId, res)
+	}
+}
+
 func (r *RelationTree) PrintTree(name string) {
 	fmt.Printf("+ relation tree: %s\n", name)
 	if r == nil {

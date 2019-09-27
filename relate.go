@@ -16,7 +16,7 @@ type Relate struct {
 	index     int
 }
 
-func (r *Relate) Init(itemI Item, itemJ Item) *Relate {
+func (r *Relate) Init() *Relate {
 	r.index = 0
 	r.relations = []Relation{LEFT, RIGHT, BACK, FRONT, BELOW, ABOVE}
 	return r

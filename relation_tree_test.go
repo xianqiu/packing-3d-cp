@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestRelationTree_AddChild(t *testing.T) {
+func TestRelationTree_AddArc1(t *testing.T) {
 	r := new(RelationTree).Init()
 	r.AddNode(1, 1)
 	r.AddNode(2, 2)
@@ -37,6 +37,11 @@ func TestRelationTree_AddChild(t *testing.T) {
 	}
 	if r.boundary != 17 {
 		t.Error("boundary=", r.boundary, "expected =", 17)
+	}
+
+	res := r.IsArcFeasible(5, 3)
+	if res != true {
+		t.Error("5 -> 3 is expected!")
 	}
 
 }

@@ -74,11 +74,12 @@ func (s *Solver) nextPair(i, j int) (int, int) {
 func (s *Solver) compare(tree *SearchTree, i, j int, t0 int64) bool {
 	ins := tree.ins
 	item := ins.GetItem(j)
-	for r := new(Rotate).Init(item); r.NotEnd(); r.Next() {
+	r := new(Rotate).Init(item)
+	for ; r.NotEnd(); r.Next() {
 		if s.isTimeout(t0) {
 			return s.returnTimeout()
 		}
-		a := new(Relate).Init(*ins.GetItem(i), *ins.GetItem(j))
+		a := new(Relate).Init()
 		// consider LEFT, BACK, BELOW for Items 1 and 2
 		if i == 1 && j == 2 {
 			a.SetSpecial()
@@ -105,6 +106,7 @@ func (s *Solver) compare(tree *SearchTree, i, j int, t0 int64) bool {
 			newTree.PrintTree()
 		}
 	}
+	r.Reset()
 	return s.returnInfeasible()
 }
 

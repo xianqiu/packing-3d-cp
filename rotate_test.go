@@ -4,9 +4,13 @@ import "testing"
 
 func TestRotation_Next1(t *testing.T) {
 	item := Item{1, 2, 3}
-
 	items := ItemList{&item}
 	r := new(Rotate).Init(items[0])
+	for ; r.NotEnd(); r.Next() {
+		println(item.L, item.W, item.H)
+	}
+	r.Reset()
+	println("=== reset ===")
 	for ; r.NotEnd(); r.Next() {
 		println(item.L, item.W, item.H)
 	}

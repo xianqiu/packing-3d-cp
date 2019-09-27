@@ -108,9 +108,11 @@ func (b *Benchmark) Run() {
 			continue
 		}
 		solver.Solve()
+		b.solvedNum += 1
 		if solver.GetStatus() == FEASIBLE && b.answers[id] == INFEASIBLE ||
 			solver.GetStatus() == INFEASIBLE && b.answers[id] == FEASIBLE {
 			b.errId = id
+			ins.Print()
 			break
 		}
 	}
@@ -124,7 +126,6 @@ func (b *Benchmark) SetMaxItemNumber(n int) {
 func (b *Benchmark) PrintReport() {
 	if b.errId != "" {
 		println("Error found in instance:", b.errId)
-		return
 	}
 	unsolvedNum := len(b.answers) - b.solvedNum
 	println("instances solved:", b.solvedNum, " instances unsolved:", unsolvedNum)

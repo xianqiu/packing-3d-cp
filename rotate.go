@@ -12,14 +12,16 @@ const (
 )
 
 type Rotate struct {
-	di   Direction
-	item *Item
-	mode int
+	di       Direction
+	item     *Item
+	itemCopy Item
+	mode     int
 }
 
 func (r *Rotate) Init(item *Item) *Rotate {
 	r.di = LWH
 	r.item = item
+	r.itemCopy = Item{item.L, item.W, item.H}
 	// 4 modes
 	if r.item.L == r.item.W && r.item.L == r.item.H {
 		r.mode = 1
@@ -158,4 +160,9 @@ func (r *Rotate) GetDiNum() int {
 		return 6
 	}
 	return -1
+}
+
+func (r *Rotate) Reset() {
+	*r.item = r.itemCopy
+	r.di = 1
 }

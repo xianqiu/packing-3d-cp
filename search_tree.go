@@ -4,7 +4,7 @@ import "fmt"
 
 type SearchTree struct {
 	ins        *Instance
-	nodes      map[int]bool // TODO: use IdSet
+	nodes      map[int]bool
 	rl, rw, rh *RelationTree
 }
 
@@ -37,12 +37,12 @@ func (s *SearchTree) addNode(index int) {
 	s.rh.AddNode(index, s.ins.GetItem(index).H)
 }
 
-// Do the following things
-// 1. Create two nodes i, j (if not exist)
-// 2. Add arc (i, j)
 func (s *SearchTree) AddArc(i, j int, a Relation) {
 	s.addNode(i)
 	s.addNode(j)
+	if s.IsArcFeasible(j, i, a) {
+		return
+	}
 	switch a {
 	case LEFT: // i is to the left of j
 		s.rl.AddArc(i, j) // Note: "break" is automatic
@@ -59,34 +59,34 @@ func (s *SearchTree) AddArc(i, j int, a Relation) {
 	}
 }
 
-func (s *SearchTree) IsArcExist(i, j int, a Relation) bool {
+func (s *SearchTree) IsArcFeasible(i, j int, a Relation) bool {
 	res := false
 	switch a {
 	case LEFT: // i is to the left of j
-		res = s.rl.IsArcExist(i, j) // Note: "break" is automatic
+		res = s.rl.IsArcFeasible(i, j) // Note: "break" is automatic
 	case RIGHT: // i is to the right of j
-		res = s.rl.IsArcExist(j, i)
+		res = s.rl.IsArcFeasible(j, i)
 	case BACK: // i is in the back of j
-		res = s.rw.IsArcExist(i, j)
+		res = s.rw.IsArcFeasible(i, j)
 	case FRONT: // i is in the front of j
-		res = s.rw.IsArcExist(j, i)
+		res = s.rw.IsArcFeasible(j, i)
 	case BELOW: // i is below j
-		res = s.rh.IsArcExist(i, j)
+		res = s.rh.IsArcFeasible(i, j)
 	case ABOVE: // i is above j
-		res = s.rh.IsArcExist(j, i)
+		res = s.rh.IsArcFeasible(j, i)
 	}
 	return res
 }
 
 func (s *SearchTree) getBoundaryIds() map[int]bool {
 	ids := make(map[int]bool)
-	for k := range *s.rl.boundaryIds {
+	for k := range s.rl.boundaryIds {
 		ids[k] = true
 	}
-	for k := range *s.rw.boundaryIds {
+	for k := range s.rw.boundaryIds {
 		ids[k] = true
 	}
-	for k := range *s.rh.boundaryIds {
+	for k := range s.rh.boundaryIds {
 		ids[k] = true
 	}
 	return ids

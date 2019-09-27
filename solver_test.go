@@ -88,6 +88,20 @@ func TestSolver_Solve4(t *testing.T) {
 	solver.Solve()
 	println("time cost:", (time.Now().UnixNano()-t0)/1e6)
 	println("status", solver.GetStatus())
-	//solver.PrintResTree()
-	//solver.PrintItems()
+}
+
+func TestSolver_Solve5(t *testing.T) {
+	ins := new(Instance).Init()
+	ins.SetBox(44.60, 41.80, 35.70)
+	ins.AddItem(28.40, 17.00, 44.60)
+	ins.AddItem(44.60, 24.80, 19.40)
+	ins.AddItem(8.80, 24.80, 44.60)
+	ins.AddItem(24.80, 44.60, 7.50)
+	ins.AddItem(7.30, 17.00, 44.60)
+
+	solver := new(Solver).Init(ins)
+	t0 := time.Now().UnixNano()
+	solver.Solve()
+	println("time cost:", (time.Now().UnixNano()-t0)/1e6)
+	println("status", solver.GetStatus())
 }
