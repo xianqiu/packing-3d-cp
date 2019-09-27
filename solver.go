@@ -86,14 +86,8 @@ func (s *Solver) compare(tree *SearchTree, i, j int, t0 int64) bool {
 		}
 		for ; a.NotEnd(); a.Next() {
 			newTree := tree.Copy()
-			if newTree.IsArcExist(j, i, a.GetRelation()) {
-				return false
-			}
 			newTree.AddArc(i, j, a.GetRelation())
 			if newTree.IsFeasible() {
-				println("feasible: i, j, r, a =", i, j, r.di, a.GetRelation())
-				newTree.PrintTree()
-				newTree.PrintItems()
 				if j == i+1 && j == (len(ins.items)-1) {
 					return s.returnFeasible(newTree)
 				}
@@ -102,8 +96,6 @@ func (s *Solver) compare(tree *SearchTree, i, j int, t0 int64) bool {
 					return true
 				}
 			}
-			println("infeasible: i, j, r, a =", i, j, r.di, a.GetRelation())
-			newTree.PrintTree()
 		}
 	}
 	r.Reset()
@@ -123,8 +115,7 @@ func (s *Solver) Solve() {
 		return
 	}
 	// Step 2: Sort instance w.r.t. volume
-	// TODO: COMMENT
-	//sort.Sort(s.ins.items)
+	sort.Sort(s.ins.items)
 	// Step 3: Initialize search tree
 	tree := new(SearchTree).Init(s.ins)
 	// Step 4: Rotate item 1 and compare (1, 2) and the pairs after it.

@@ -54,6 +54,7 @@ func (r *Rotate) Init1(item *Item, box *Box) *Rotate {
 	} else {
 		r.mode = 5
 	}
+
 	return r
 }
 
